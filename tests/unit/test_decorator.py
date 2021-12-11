@@ -1,5 +1,5 @@
 from typing import Callable
-from introspector.decorator import strict
+from introspector import strict
 
 
 class TestDecorator:
