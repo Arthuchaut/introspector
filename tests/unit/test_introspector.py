@@ -135,3 +135,60 @@ class TestIntrospector:
     )
     def test__get_origin(self, type_: TypeVar, expected: TypeVar) -> None:
         assert Introspector._get_origin(type_) == expected
+
+    @pytest.mark.parametrize(
+        'type_, value, throwable',
+        [
+            (int, 200, None),
+            (float, 3.14, None),
+            (str, 'foo', None),
+            (int | float, 'a', TypeError),
+            (int | float, True, TypeError),
+            (list[int], [1, 2, 3, 4], None),
+            (tuple[str, str], (2, 'b'), None),
+            (list[Any], ['a', 2, True, 3.14], None),
+            (tuple[Any, str, Any], ('a', 1, True), None),
+            (dict[str, Any], {'a': 1, 1: [1, 2]}, None),
+            (list[int], (1, 2, 3, 4), TypeError),
+            (list[Any], {'a', 2, True, 3.14}, TypeError),
+            (list[Any], {'a': 1}, TypeError),
+            (dict[str, Any], ('a', 1, 2), TypeError),
+        ],
+    )
+    def test__inspect_origin(
+        self,
+        type_: TypeVar,
+        value: Any,
+        throwable: TypeError | None,
+    ) -> None:
+        if throwable:
+            with pytest.raises(throwable):
+                Introspector._inspect_origin(type_, value)
+        else:
+            Introspector._inspect_origin(type_, value)
+
+    @pytest.mark.parametrize(
+        'type_, value, throwable',
+        [
+            (list[int], [1, 2, 3, 4], None),
+            (tuple[str, str], ('a', 'b'), None),
+            (list[Any], ['a', 2, True, 3.14], None),
+            (tuple[Any, str, Any], ('a', 'b', True), None),
+            (set[int], {1, 2}, None),
+            (set[float], {1.2, 3.14}, None),
+            (dict[str, Any], {'a': 1, 'a': [1, 2]}, None),
+            (list[int], [1, 2, 'a', 4], TypeError),
+            (dict[str, Any], {'a': 'b', 1: []}, TypeError),
+        ],
+    )
+    def test__inspect_subtypes(
+        self,
+        type_: TypeVar,
+        value: Any,
+        throwable: TypeError | None,
+    ) -> None:
+        if throwable:
+            with pytest.raises(throwable):
+                Introspector._inspect_subtypes(type_, value)
+        else:
+            Introspector._inspect_subtypes(type_, value)
