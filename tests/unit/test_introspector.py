@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, TypeVar
 import pytest
 from introspector.introspector import Introspector
 
@@ -118,3 +118,20 @@ class TestIntrospector:
                 Introspector.inspect(type_, value)
         else:
             Introspector.inspect(type_, value)
+
+    @pytest.mark.parametrize(
+        'type_, expected',
+        [
+            (int, int),
+            (float, float),
+            (str, str),
+            (bool, bool),
+            (list[str], list),
+            (dict[str, Any], dict),
+            (set[int], set),
+            (tuple[int, int], tuple),
+            (Any, Any),
+        ],
+    )
+    def test__get_origin(self, type_: TypeVar, expected: TypeVar) -> None:
+        assert Introspector._get_origin(type_) == expected

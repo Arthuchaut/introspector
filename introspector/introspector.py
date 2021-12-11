@@ -46,44 +46,6 @@ class Introspector:
         return type_
 
     @classmethod
-    def _inspect_subtypes(cls, type_: TypeVar, value: Any) -> None:
-        '''Analyze the subtypes of the main type.
-        Example:
-            - list[int]: subtype is int
-            - dict[str, Any]: subtypes are (str, Any)
-
-        Args:
-            type_ (TypeVar): The type var.
-            value (Any): The value to analyze.
-
-        Raises:
-            TypeError: If the value data structure does not match
-                with the given typing.
-        '''
-
-        origin: TypeVar = cls._get_origin(type_)
-
-        if origin is list:
-            for item in value:
-                cls.inspect(type_.__args__[0], item)
-        elif origin is tuple:
-            if len(type_.__args__) != len(value):
-                raise TypeError('Tuple sizes doesn\'t matches.')
-
-            for i, sub_type in enumerate(type_.__args__):
-                cls.inspect(sub_type, value[i])
-        elif origin is set:
-            for item in value:
-                cls.inspect(type_.__args__[0], item)
-        elif origin is dict:
-            if len(type_.__args__) != 2:
-                raise TypeError('Missing key/val in dict type definition.')
-
-            for key, val in value.items():
-                cls.inspect(type_.__args__[0], key)
-                cls.inspect(type_.__args__[1], val)
-
-    @classmethod
     def _inspect_origin(cls, type_: TypeVar, value: Any) -> None:
         '''Analyze the main type.
         Example:
@@ -121,3 +83,41 @@ class Introspector:
                 raise TypeError
         elif origin is not type(value):
             raise TypeError
+
+    @classmethod
+    def _inspect_subtypes(cls, type_: TypeVar, value: Any) -> None:
+        '''Analyze the subtypes of the main type.
+        Example:
+            - list[int]: subtype is int
+            - dict[str, Any]: subtypes are (str, Any)
+
+        Args:
+            type_ (TypeVar): The type var.
+            value (Any): The value to analyze.
+
+        Raises:
+            TypeError: If the value data structure does not match
+                with the given typing.
+        '''
+
+        origin: TypeVar = cls._get_origin(type_)
+
+        if origin is list:
+            for item in value:
+                cls.inspect(type_.__args__[0], item)
+        elif origin is tuple:
+            if len(type_.__args__) != len(value):
+                raise TypeError('Tuple sizes doesn\'t matches.')
+
+            for i, sub_type in enumerate(type_.__args__):
+                cls.inspect(sub_type, value[i])
+        elif origin is set:
+            for item in value:
+                cls.inspect(type_.__args__[0], item)
+        elif origin is dict:
+            if len(type_.__args__) != 2:
+                raise TypeError('Missing key/val in dict type definition.')
+
+            for key, val in value.items():
+                cls.inspect(type_.__args__[0], key)
+                cls.inspect(type_.__args__[1], val)
