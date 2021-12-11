@@ -1,0 +1,120 @@
+from typing import Any
+import pytest
+from introspector.introspector import Introspector
+
+
+class TestIntrospector:
+    @pytest.mark.parametrize(
+        'type_, value, throwable',
+        [
+            # Primitive types tests
+            (int, 200, None),
+            (float, 3.14, None),
+            (str, 'foo', None),
+            (bool, True, None),
+            (bool, False, None),
+            (int | float, 3.14, None),
+            (int | float, 5, None),
+            (int | float | str, 2, None),
+            (int | float | str, 3.14, None),
+            (int | float | str, 'a', None),
+            (int, 'a', TypeError),
+            (float, 3, TypeError),
+            (str, 5, TypeError),
+            (bool, 1, TypeError),
+            (bool, 0, TypeError),
+            (int | float, 'a', TypeError),
+            (int | float, True, TypeError),
+            (int | float | str, False, TypeError),
+            # Complex types tests
+            (list[int], [1, 2, 3, 4], None),
+            (list[str], ['a', 'b', 'c', 'd'], None),
+            (list[float], [2.4, 5.2], None),
+            (list[bool], [True, False], None),
+            (list[int | bool], [True, False, 4], None),
+            (list[int | str], ['a', 4], None),
+            (tuple[str, str], ('a', 'b'), None),
+            (tuple[int, str], (4, 'b'), None),
+            (tuple[float, str, bool], (3.14, 'b', True), None),
+            (tuple[float, str | int, bool], (3.14, 'b', True), None),
+            (tuple[float, str | int, bool], (3.14, 4, True), None),
+            (set[int], {1, 2}, None),
+            (set[float], {1.2, 3.14}, None),
+            (set[str], {'a', 'b'}, None),
+            (set[bool], {True, False}, None),
+            (set[int | str], {'a', 5}, None),
+            (dict[str, int], {'a': 1, 'b': 2}, None),
+            (dict[str, float], {'a': 1.0, 'b': 2.0}, None),
+            (dict[str, str], {'a': 'a', 'b': 'b'}, None),
+            (dict[str, bool], {'a': True, 'b': False}, None),
+            (dict[int, int], {1: 1, 2: 2}, None),
+            (dict[int, float], {1: 1.0, 2: 2.0}, None),
+            (dict[int, str], {1: 'a', 2: 'b'}, None),
+            (dict[int, bool], {1: True, 2: False}, None),
+            (dict[int | str, bool], {1: True, 'a': False}, None),
+            (dict[int | str, bool | float], {1: True, 'a': 3.14}, None),
+            (list[int], ['a', 'b', 'c', 'd'], TypeError),
+            (list[str], [1, 2, 3, 4], TypeError),
+            (list[float], [2, 5], TypeError),
+            (list[bool], ['True', 'False'], TypeError),
+            (tuple[str, str], (2, 'b'), TypeError),
+            (tuple[int, str], (4, 2), TypeError),
+            (tuple[float, str, bool], (3.14, 'b', True, 5), TypeError),
+            (tuple[float, str | int, bool], (3.14, 2.6, True), TypeError),
+            (set[bool], {True, 2}, TypeError),
+            (set[int | str], {'a', 5, 3.14}, TypeError),
+            (dict[str, int], {'a': 1, 'b': 'c'}, TypeError),
+            (dict[str, float], {'a': 1.0, 2: 2.0}, TypeError),
+            # Mixed types tests
+            (list[dict[str, int]], [{'a': 1}, {'b': 2, 'c': 3}], None),
+            (
+                list[dict[str, dict[int, str]]],
+                [{'a': {2: 'b'}}, {'b': {4: 'd'}, 'c': {5: 'e'}}],
+                None,
+            ),
+            (
+                dict[str, list[int | str]],
+                {'a': [5, 'b', 6], 'b': ['c', 'd', 'e']},
+                None,
+            ),
+            (
+                dict[str, list[int | str]],
+                {'a': [5, 'b', 6], 'b': ['c', 'd', 'e', 3.14]},
+                TypeError,
+            ),
+            # Any types tests
+            (Any, 'a', None),
+            (Any, 2, None),
+            (Any, 3.14, None),
+            (Any, True, None),
+            (Any, [1, 2], None),
+            (Any, [1, 'a', True, 3.14], None),
+            (Any, {'a': 1, 2: 'b'}, None),
+            (list[Any], [1, 2], None),
+            (list[Any], ['a', 'b'], None),
+            (list[Any], ['a', 2, True, 3.14], None),
+            (tuple[Any, str, Any], ('a', 'b', True), None),
+            (dict[str, Any], {'a': 1, 'b': [1, 2]}, None),
+            (dict[Any, Any], {'a': 1, 1: [1, 2]}, None),
+            (
+                dict[str, list[Any]],
+                {'a': ['a', True, 3.14], 'b': [1, '2']},
+                None,
+            ),
+            (list[Any], {'a': 1}, TypeError),
+            (tuple[Any, str, Any], ('a', 1, True), TypeError),
+            (dict[str, Any], {'a': 1, 1: [1, 2]}, TypeError),
+            (dict[str, list[Any]], {'a': 1, 'b': [1, 2]}, TypeError),
+        ],
+    )
+    def test_inspect(
+        self,
+        type_: Any,
+        value: Any,
+        throwable: TypeError | None,
+    ) -> None:
+        if throwable:
+            with pytest.raises(throwable):
+                Introspector.inspect(type_, value)
+        else:
+            Introspector.inspect(type_, value)
