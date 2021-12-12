@@ -69,6 +69,7 @@ def strict(func: Callable[[Any], Any]) -> Callable[[Any], Any]:
 
         retval: Any = func(*args, **kwargs)
 
+        # Inspect the func return value
         try:
             inspector: Introspector = Introspector(sign.return_annotation)
             inspector.inspect(sign.return_annotation, retval)

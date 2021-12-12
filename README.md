@@ -6,12 +6,17 @@
 - [Introspector](#introspector)
   - [Table of contents](#table-of-contents)
   - [Introduction](#introduction)
+  - [Requirements](#requirements)
   - [Basic usage](#basic-usage)
 
 ## Introduction
 
 Introduce strict typing in your functions.  
 This project is under development. 
+
+## Requirements
+
+- Python >= 3.10
 
 ## Basic usage
 
