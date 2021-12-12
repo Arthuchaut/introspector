@@ -6,38 +6,33 @@
 - [Introspector](#introspector)
   - [Table of contents](#table-of-contents)
   - [Introduction](#introduction)
-  - [Intended use](#intended-use)
+  - [Basic usage](#basic-usage)
 
 ## Introduction
 
 Introduce strict typing in your functions.  
 This project is under development. 
 
-## Intended use
+## Basic usage
 
 ```py
 import introspector
 
-class Vector(tuple):
-    ...
-
 @introspector.strict
-def foo(a: float, b: list[dict[str, int]]) -> list[Vector]:
-    ...
+def foo(a: int, b: list[dict[str, Any]]) -> list[int]:
+    # Some funny code...
 
-PI: float = 3.14
-pixels: list[dict[str, int]] = [
-    {
-        'x': 254,
-        'y': 1564,
-    },
-    {
-        'x': 456,
-        'y': 342,
-    },
-]
+    return [1, 2, 3, 4]
 
-foo(PI, pixels)
+foo(
+    42, 
+    [
+        {
+            'x': ['hello', 'world'],
+            'y': 3.14,
+        },
+    ],
+)
 ```
 
 When the code is executed, the `instrospector.strict` decorator will inspect the signature of the `foo` function and compare it with the values passed in its parameters.  
