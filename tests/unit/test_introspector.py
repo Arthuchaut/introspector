@@ -117,11 +117,13 @@ class TestIntrospector:
         value: Any,
         throwable: TypeError | None,
     ) -> None:
+        inspector: Introspector = Introspector(type_)
+
         if throwable:
             with pytest.raises(throwable):
-                Introspector.inspect(type_, value)
+                inspector.inspect(type_, value)
         else:
-            Introspector.inspect(type_, value)
+            inspector.inspect(type_, value)
 
     @pytest.mark.parametrize(
         'type_, expected',
@@ -138,7 +140,8 @@ class TestIntrospector:
         ],
     )
     def test__get_origin(self, type_: TypeVar, expected: TypeVar) -> None:
-        assert Introspector._get_origin(type_) == expected
+        inspector: Introspector = Introspector(type_)
+        assert inspector._get_origin(type_) == expected
 
     @pytest.mark.parametrize(
         'type_, value, throwable',
@@ -165,11 +168,13 @@ class TestIntrospector:
         value: Any,
         throwable: TypeError | None,
     ) -> None:
+        inspector: Introspector = Introspector(type_)
+
         if throwable:
             with pytest.raises(throwable):
-                Introspector._inspect_origin(type_, value)
+                inspector._inspect_origin(type_, value)
         else:
-            Introspector._inspect_origin(type_, value)
+            inspector._inspect_origin(type_, value)
 
     @pytest.mark.parametrize(
         'type_, value, throwable',
@@ -191,8 +196,10 @@ class TestIntrospector:
         value: Any,
         throwable: TypeError | None,
     ) -> None:
+        inspector: Introspector = Introspector(type_)
+
         if throwable:
             with pytest.raises(throwable):
-                Introspector._inspect_subtypes(type_, value)
+                inspector._inspect_subtypes(type_, value)
         else:
-            Introspector._inspect_subtypes(type_, value)
+            inspector._inspect_subtypes(type_, value)

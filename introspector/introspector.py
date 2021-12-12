@@ -7,8 +7,10 @@ class Introspector:
     Offer tool to compare a typing to a value.
     '''
 
-    @classmethod
-    def inspect(cls, type_: TypeVar, value: Any) -> None:
+    def __init__(self, type_tree: TypeVar) -> None:
+        self._type_tree: TypeVar = type_tree
+
+    def inspect(self, type_: TypeVar, value: Any) -> None:
         '''Analyze the typing tree and compare each typing node
         with the given value.
 
@@ -21,16 +23,15 @@ class Introspector:
                 with the given typing.
         '''
 
-        origin: TypeVar = cls._get_origin(type_)
+        origin: TypeVar = self._get_origin(type_)
 
         if origin != Any and value is not None:
-            cls._inspect_origin(type_, value)
+            self._inspect_origin(type_, value)
 
             if hasattr(type_, '__args__') and type_.__args__:
-                cls._inspect_subtypes(type_, value)
+                self._inspect_subtypes(type_, value)
 
-    @classmethod
-    def _get_origin(cls, type_: TypeVar) -> TypeVar:
+    def _get_origin(self, type_: TypeVar) -> TypeVar:
         '''Get the original typing class.
 
         Args:
@@ -45,8 +46,7 @@ class Introspector:
 
         return type_
 
-    @classmethod
-    def _inspect_origin(cls, type_: TypeVar, value: Any) -> None:
+    def _inspect_origin(self, type_: TypeVar, value: Any) -> None:
         '''Analyze the main type.
         Example:
             - list[int]: main type is list
@@ -61,7 +61,7 @@ class Introspector:
                 with the given typing.
         '''
 
-        origin: TypeVar = cls._get_origin(type_)
+        origin: TypeVar = self._get_origin(type_)
 
         if type(origin) is UnionType or origin == Union:
             match: bool = False
@@ -73,19 +73,22 @@ class Introspector:
 
             for sub_type in args:
                 try:
-                    cls.inspect(sub_type, value)
+                    self.inspect(sub_type, value)
                     match = True
                     break
                 except TypeError:
                     pass
 
             if not match:
-                raise TypeError
+                raise TypeError(
+                    f'Expected {self._type_tree}. Mismatch on {type(value)}'
+                )
         elif origin is not type(value):
-            raise TypeError
+            raise TypeError(
+                f'Expected {self._type_tree}. Mismatch on {type(value)}'
+            )
 
-    @classmethod
-    def _inspect_subtypes(cls, type_: TypeVar, value: Any) -> None:
+    def _inspect_subtypes(self, type_: TypeVar, value: Any) -> None:
         '''Analyze the subtypes of the main type.
         Example:
             - list[int]: subtype is int
@@ -100,24 +103,24 @@ class Introspector:
                 with the given typing.
         '''
 
-        origin: TypeVar = cls._get_origin(type_)
+        origin: TypeVar = self._get_origin(type_)
 
         if origin is list:
             for item in value:
-                cls.inspect(type_.__args__[0], item)
+                self.inspect(type_.__args__[0], item)
         elif origin is tuple:
             if len(type_.__args__) != len(value):
                 raise TypeError('Tuple sizes doesn\'t matches.')
 
             for i, sub_type in enumerate(type_.__args__):
-                cls.inspect(sub_type, value[i])
+                self.inspect(sub_type, value[i])
         elif origin is set:
             for item in value:
-                cls.inspect(type_.__args__[0], item)
+                self.inspect(type_.__args__[0], item)
         elif origin is dict:
             if len(type_.__args__) != 2:
                 raise TypeError('Missing key/val in dict type definition.')
 
             for key, val in value.items():
-                cls.inspect(type_.__args__[0], key)
-                cls.inspect(type_.__args__[1], val)
+                self.inspect(type_.__args__[0], key)
+                self.inspect(type_.__args__[1], val)

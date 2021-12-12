@@ -60,16 +60,20 @@ def strict(func: Callable[[Any], Any]) -> Callable[[Any], Any]:
         for arg_name, pair in params_mapping.items():
             try:
                 type_, value = pair
-                Introspector.inspect(type_, value)
+                inspector: Introspector = Introspector(type_)
+                inspector.inspect(type_, value)
             except TypeError as e:
-                raise TypeError(f'[{func.__name__}] Arg \'{arg_name}\'') from e
+                raise TypeError(
+                    f'[{func.__name__}{sign}] Arg \'{arg_name}\' error. {e}'
+                )
 
         retval: Any = func(*args, **kwargs)
 
         try:
-            Introspector.inspect(sign.return_annotation, retval)
+            inspector: Introspector = Introspector(sign.return_annotation)
+            inspector.inspect(sign.return_annotation, retval)
         except TypeError as e:
-            raise TypeError(f'[{func.__name__}] Return value') from e
+            raise TypeError(f'[{func.__name__}{sign}] Return value error. {e}')
 
         return retval
 
