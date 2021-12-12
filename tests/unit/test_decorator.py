@@ -1,6 +1,6 @@
 from typing import Any, Callable, TypeVar
 import pytest
-from introspector import strict
+from src.introspector import strict
 
 
 class TestDecorator:

@@ -1,6 +1,6 @@
 from typing import Any, Callable, TypeVar
 import pytest
-from introspector.introspector import Introspector
+from src.introspector.introspector import Introspector
 
 
 class TestIntrospector:

@@ -1,6 +1,6 @@
 from typing import Any, Callable, TypeVar
 import inspect
-from introspector.introspector import Introspector
+from .introspector import Introspector
 
 
 def strict(func: Callable[[Any], Any]) -> Callable[[Any], Any]:
