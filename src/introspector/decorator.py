@@ -2,8 +2,10 @@ from typing import Any, Callable, TypeVar
 import inspect
 from .introspector import Introspector
 
+DEFAULT_EXCLUSIONS: list[str] = ['self', 'cls']
 
-def strict(*, exclude: list[str] = []) -> Callable[[Any], Any]:
+
+def strict(*args: Any, exclude: list[str] = []) -> Callable[[Any], Any]:
     '''The strict decorator envelop.
 
     Args:
@@ -15,7 +17,7 @@ def strict(*, exclude: list[str] = []) -> Callable[[Any], Any]:
     '''
 
     if type(exclude) is not list:
-        raise TypeError('Arg \'exclude\' must be the type of list[str].')
+        raise TypeError('Arg \'exclude\' must be a list of arg names.')
 
     def decorator(func: Callable[[Any], Any]) -> Callable[[Any], Any]:
         '''Decorator implementation for the function inspection.
@@ -31,7 +33,7 @@ def strict(*, exclude: list[str] = []) -> Callable[[Any], Any]:
             Callable[[Any], Any]: The decorator wrapper.
         '''
 
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
+        def wrapper(*f_args: Any, **f_kwargs: Any) -> Any:
             '''The decotator wrapper implementation.
 
             Args:
@@ -51,7 +53,7 @@ def strict(*, exclude: list[str] = []) -> Callable[[Any], Any]:
             params_mapping: dict[str, tuple[TypeVar, Any]] = {}
 
             # Mapping kwargs parameters
-            for arg_name, arg_val in kwargs.items():
+            for arg_name, arg_val in f_kwargs.items():
                 params_mapping[arg_name] = (
                     parameters[arg_name].annotation,
                     arg_val,
@@ -59,7 +61,7 @@ def strict(*, exclude: list[str] = []) -> Callable[[Any], Any]:
                 del parameters[arg_name]
 
             # Mapping args parameters
-            for arg_name, arg_val in zip(parameters, args):
+            for arg_name, arg_val in zip(parameters, f_args):
                 params_mapping[arg_name] = (
                     parameters[arg_name].annotation,
                     arg_val,
@@ -86,24 +88,27 @@ def strict(*, exclude: list[str] = []) -> Callable[[Any], Any]:
                         inspector.inspect(type_, value)
                     except TypeError as e:
                         raise TypeError(
-                            f'[{func.__name__}{sign}] Arg '
+                            f'[{func.__name__}] Arg '
                             f'\'{arg_name}\' error. {e}'
                         )
 
             # Calling func and retrieving its return value
-            retval: Any = func(*args, **kwargs)
+            retval: Any = func(*f_args, **f_kwargs)
 
             # Inspect the func return value
             try:
                 inspector: Introspector = Introspector(sign.return_annotation)
                 inspector.inspect(sign.return_annotation, retval)
             except TypeError as e:
-                raise TypeError(
-                    f'[{func.__name__}{sign}] Return value error. {e}'
-                )
+                raise TypeError(f'[{func.__name__}] Return value error. {e}')
 
             return retval
 
         return wrapper
 
-    return decorator
+    if len(args) == 1 and not exclude and callable(args[0]):
+        exclude = DEFAULT_EXCLUSIONS
+        return decorator(args[0])
+    else:
+        exclude += DEFAULT_EXCLUSIONS
+        return decorator

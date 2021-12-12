@@ -1,36 +1,22 @@
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable
 import pytest
-from src.introspector import strict
+from src import introspector
 
 
 class TestDecorator:
-    class LambdaClassA:
+    class Fake:
         ...
 
     @pytest.mark.parametrize(
-        'func_name, args, kwargs, expected_ret, dkwargs, throwable',
+        'func_name, args, kwargs, expected_ret, throwable',
         [
-            ('_lambda_func_1', (2, 'a', [1, 2, 3]), {}, 3.14, {}, None),
-            ('_lambda_func_4', (2, 'a'), {'d': [1, 2]}, 3.14, {}, None),
-            (
-                '_lambda_func_5',
-                (LambdaClassA(), 3.14),
-                {'d': [1, 2]},
-                3.14,
-                {},
-                None,
-            ),
-            (
-                '_lambda_func_1',
-                (2, 4, [1, 2, 3]),
-                {},
-                3.14,
-                {'exclude': ['b']},
-                None,
-            ),
-            ('_lambda_func_1', (2, 4, [1, 2, 3]), {}, 3.14, {}, TypeError),
-            ('_lambda_func_2', (2, 'a', [1, 2, 3]), {}, None, {}, TypeError),
-            ('_lambda_func_3', (2, 'a'), {}, None, {}, TypeError),
+            ('_lambda_func_1', (2, 'a', [1, 2, 3]), {}, 3.14, None),
+            ('_lambda_func_4', (2, 'a'), {'d': [1, 2]}, 3.14, None),
+            ('_lambda_func_5', (Fake(), 3.14), {'d': [1, 2]}, 3.14, None),
+            ('_lambda_func_6', (2, 4, [1, 2, 3]), {}, 3.14, None),
+            ('_lambda_func_1', (2, 4, [1, 2, 3]), {}, 3.14, TypeError),
+            ('_lambda_func_2', (2, 'a', [1, 2, 3]), {}, None, TypeError),
+            ('_lambda_func_3', (2, 'a'), {}, None, TypeError),
         ],
     )
     def test_strict(
@@ -39,19 +25,18 @@ class TestDecorator:
         args: Any,
         kwargs: Any,
         expected_ret: Any,
-        dkwargs: Any,
         throwable: TypeError | None,
     ) -> None:
-        envelop: Callable[[Any], Any] = strict(**dkwargs)
-        decorator: Callable[[Any], Any] = envelop(getattr(self, func_name))
+        func: Callable[[Any], Any] = getattr(self, func_name)
 
         if throwable:
             with pytest.raises(throwable):
-                decorator(*args, **kwargs)
+                func(*args, **kwargs)
         else:
-            ret: Any = decorator(*args, **kwargs)
+            ret: Any = func(*args, **kwargs)
             assert ret == expected_ret
 
+    @introspector.strict
     def _lambda_func_1(
         self,
         a: int,
@@ -61,6 +46,7 @@ class TestDecorator:
     ) -> float:
         return 3.14
 
+    @introspector.strict
     def _lambda_func_2(
         self,
         a: int,
@@ -70,6 +56,7 @@ class TestDecorator:
     ) -> float:
         return 'not a float'
 
+    @introspector.strict
     def _lambda_func_3(
         self,
         a: int,
@@ -77,6 +64,7 @@ class TestDecorator:
     ) -> float:
         return 3.14
 
+    @introspector.strict
     def _lambda_func_4(
         self,
         a: int,
@@ -87,11 +75,22 @@ class TestDecorator:
     ) -> float:
         return 3.14
 
+    @introspector.strict
     def _lambda_func_5(
         self,
-        a: LambdaClassA,
+        a: Fake,
         b: int | float,
         *,
+        d: list[int],
+        c: str = None,
+    ) -> float:
+        return 3.14
+
+    @introspector.strict(exclude=['b'])
+    def _lambda_func_6(
+        self,
+        a: int,
+        b: float | str,
         d: list[int],
         c: str = None,
     ) -> float:
