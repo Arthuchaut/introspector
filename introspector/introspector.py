@@ -1,5 +1,6 @@
 from types import UnionType
 from typing import Any, TypeVar, Union
+from collections import abc
 
 
 class Introspector:
@@ -83,7 +84,12 @@ class Introspector:
                 raise TypeError(
                     f'Expected {self._type_tree}. Mismatch on {type(value)}'
                 )
-        elif origin is not type(value):
+        elif (
+            origin is not abc.Callable
+            and origin is not type(value)
+            or origin is abc.Callable
+            and not isinstance(value, abc.Callable)
+        ):
             raise TypeError(
                 f'Expected {self._type_tree}. Mismatch on {type(value)}'
             )

@@ -1,4 +1,4 @@
-from typing import Any, TypeVar
+from typing import Any, Callable, TypeVar
 import pytest
 from introspector.introspector import Introspector
 
@@ -105,6 +105,10 @@ class TestIntrospector:
                 {'a': ['a', True, 3.14], 'b': [1, '2']},
                 None,
             ),
+            (Callable, lambda x: None, None),
+            (Callable[[Any], Any], lambda x: None, None),
+            (Callable[[int, str], int], lambda x: None, None),
+            (Callable[[int, str], int], 'any', TypeError),
             (list[Any], {'a': 1}, TypeError),
             (tuple[Any, str, Any], ('a', 1, True), TypeError),
             (dict[str, Any], {'a': 1, 1: [1, 2]}, TypeError),
