@@ -4,6 +4,8 @@ from introspector.introspector import Introspector
 
 
 class TestIntrospector:
+    T = TypeVar('T')
+
     @pytest.mark.parametrize(
         'type_, value, throwable',
         [
@@ -113,6 +115,10 @@ class TestIntrospector:
             (tuple[Any, str, Any], ('a', 1, True), TypeError),
             (dict[str, Any], {'a': 1, 1: [1, 2]}, TypeError),
             (dict[str, list[Any]], {'a': 1, 'b': [1, 2]}, TypeError),
+            # Custom types tests (check if not analyzed)
+            (T, 'hello', None),
+            (list[T], [1, 'a', 3.14], None),
+            (list[T], {1, 'a', 3.14}, TypeError),
         ],
     )
     def test_inspect(

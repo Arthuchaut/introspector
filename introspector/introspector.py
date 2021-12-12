@@ -26,7 +26,7 @@ class Introspector:
 
         origin: TypeVar = self._get_origin(type_)
 
-        if origin != Any and value is not None:
+        if origin != Any and value is not None and type(origin) is not TypeVar:
             self._inspect_origin(type_, value)
 
             if hasattr(type_, '__args__') and type_.__args__:
