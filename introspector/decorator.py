@@ -26,7 +26,7 @@ def strict(func: Callable[[Any], Any]) -> Callable[[Any], Any]:
 
         Raises:
             TypeError: If the func params types does not match with the given
-                values.
+                values or if any argument is not typed.
 
         Returns:
             Any: The func return value.
@@ -60,6 +60,10 @@ def strict(func: Callable[[Any], Any]) -> Callable[[Any], Any]:
         for arg_name, pair in params_mapping.items():
             try:
                 type_, value = pair
+
+                if type_ is inspect._empty:
+                    raise TypeError('Missing typing.')
+
                 inspector: Introspector = Introspector(type_)
                 inspector.inspect(type_, value)
             except TypeError as e:
@@ -67,6 +71,7 @@ def strict(func: Callable[[Any], Any]) -> Callable[[Any], Any]:
                     f'[{func.__name__}{sign}] Arg \'{arg_name}\' error. {e}'
                 )
 
+        # Calling func and retrieving its return value
         retval: Any = func(*args, **kwargs)
 
         # Inspect the func return value
