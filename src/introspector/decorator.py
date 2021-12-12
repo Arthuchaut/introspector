@@ -3,84 +3,107 @@ import inspect
 from .introspector import Introspector
 
 
-def strict(func: Callable[[Any], Any]) -> Callable[[Any], Any]:
-    '''Decorator implementation for the function inspection.
+def strict(*, exclude: list[str] = []) -> Callable[[Any], Any]:
+    '''The strict decorator envelop.
 
     Args:
-        func (Callable[[Any], Any]): The function to inspect.
-
-    Raises:
-        TypeError: If the function params types does not match with the given
-            values.
+        exclude (Optional, list[str]): The list of excluded args.
+            Default to [].
 
     Returns:
-        Callable[[Any], Any]: The decorator wrapper.
+        Callable[[Any], Any]: The decorator function.
     '''
 
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        '''The decotator wrapper implementation.
+    if type(exclude) is not list:
+        raise TypeError('Arg \'exclude\' must be the type of list[str].')
+
+    def decorator(func: Callable[[Any], Any]) -> Callable[[Any], Any]:
+        '''Decorator implementation for the function inspection.
 
         Args:
-            *args (Any): The func arguments.
-            **kwargs (Any): The func named arguments.
+            func (Callable[[Any], Any]): The function to inspect.
 
         Raises:
-            TypeError: If the func params types does not match with the given
-                values or if any argument is not typed.
+            TypeError: If the function params types does not match with the
+                given values.
 
         Returns:
-            Any: The func return value.
+            Callable[[Any], Any]: The decorator wrapper.
         '''
 
-        sign: inspect.Signature = inspect.signature(func)
-        parameters: dict[str, Any] = dict(sign.parameters)
-        params_mapping: dict[str, tuple[TypeVar, Any]] = {}
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            '''The decotator wrapper implementation.
 
-        # Mapping kwargs parameters
-        for arg_name, arg_val in kwargs.items():
-            params_mapping[arg_name] = (
-                parameters[arg_name].annotation,
-                arg_val,
-            )
-            del parameters[arg_name]
+            Args:
+                *args (Any): The func arguments.
+                **kwargs (Any): The func named arguments.
 
-        # Mapping args parameters
-        for arg_name, arg_val in zip(parameters, args):
-            params_mapping[arg_name] = (
-                parameters[arg_name].annotation,
-                arg_val,
-            )
+            Raises:
+                TypeError: If the func params types does not match with the
+                    given values or if any argument is not typed.
 
-        # Mapping default parameters
-        for arg_name, param in parameters.items():
-            if param.default != inspect._empty:
-                params_mapping[arg_name] = (param.annotation, param.default)
+            Returns:
+                Any: The func return value.
+            '''
 
-        # Inspect func
-        for arg_name, pair in params_mapping.items():
-            try:
-                type_, value = pair
+            sign: inspect.Signature = inspect.signature(func)
+            parameters: dict[str, Any] = dict(sign.parameters)
+            params_mapping: dict[str, tuple[TypeVar, Any]] = {}
 
-                if type_ is inspect._empty:
-                    raise TypeError('Missing typing.')
+            # Mapping kwargs parameters
+            for arg_name, arg_val in kwargs.items():
+                params_mapping[arg_name] = (
+                    parameters[arg_name].annotation,
+                    arg_val,
+                )
+                del parameters[arg_name]
 
-                inspector: Introspector = Introspector(type_)
-                inspector.inspect(type_, value)
-            except TypeError as e:
-                raise TypeError(
-                    f'[{func.__name__}{sign}] Arg \'{arg_name}\' error. {e}'
+            # Mapping args parameters
+            for arg_name, arg_val in zip(parameters, args):
+                params_mapping[arg_name] = (
+                    parameters[arg_name].annotation,
+                    arg_val,
                 )
 
-        # Calling func and retrieving its return value
-        retval: Any = func(*args, **kwargs)
+            # Mapping default parameters
+            for arg_name, param in parameters.items():
+                if param.default != inspect._empty:
+                    params_mapping[arg_name] = (
+                        param.annotation,
+                        param.default,
+                    )
 
-        # Inspect the func return value
-        try:
-            inspector: Introspector = Introspector(sign.return_annotation)
-            inspector.inspect(sign.return_annotation, retval)
-        except TypeError as e:
-            raise TypeError(f'[{func.__name__}{sign}] Return value error. {e}')
+            # Inspect func
+            for arg_name, pair in params_mapping.items():
+                if arg_name not in exclude:
+                    try:
+                        type_, value = pair
 
-        return retval
+                        if type_ is inspect._empty:
+                            raise TypeError('Missing typing.')
 
-    return wrapper
+                        inspector: Introspector = Introspector(type_)
+                        inspector.inspect(type_, value)
+                    except TypeError as e:
+                        raise TypeError(
+                            f'[{func.__name__}{sign}] Arg '
+                            f'\'{arg_name}\' error. {e}'
+                        )
+
+            # Calling func and retrieving its return value
+            retval: Any = func(*args, **kwargs)
+
+            # Inspect the func return value
+            try:
+                inspector: Introspector = Introspector(sign.return_annotation)
+                inspector.inspect(sign.return_annotation, retval)
+            except TypeError as e:
+                raise TypeError(
+                    f'[{func.__name__}{sign}] Return value error. {e}'
+                )
+
+            return retval
+
+        return wrapper
+
+    return decorator

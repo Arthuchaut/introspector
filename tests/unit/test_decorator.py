@@ -8,20 +8,29 @@ class TestDecorator:
         ...
 
     @pytest.mark.parametrize(
-        'func_name, args, kwargs, expected_ret, throwable',
+        'func_name, args, kwargs, expected_ret, dkwargs, throwable',
         [
-            ('_lambda_func_1', (2, 'a', [1, 2, 3]), {}, 3.14, None),
-            ('_lambda_func_4', (2, 'a'), {'d': [1, 2]}, 3.14, None),
+            ('_lambda_func_1', (2, 'a', [1, 2, 3]), {}, 3.14, {}, None),
+            ('_lambda_func_4', (2, 'a'), {'d': [1, 2]}, 3.14, {}, None),
             (
                 '_lambda_func_5',
                 (LambdaClassA(), 3.14),
                 {'d': [1, 2]},
                 3.14,
+                {},
                 None,
             ),
-            ('_lambda_func_1', (2, 4, [1, 2, 3]), {}, 3.14, TypeError),
-            ('_lambda_func_2', (2, 'a', [1, 2, 3]), {}, None, TypeError),
-            ('_lambda_func_3', (2, 'a'), {}, None, TypeError),
+            (
+                '_lambda_func_1',
+                (2, 4, [1, 2, 3]),
+                {},
+                3.14,
+                {'exclude': ['b']},
+                None,
+            ),
+            ('_lambda_func_1', (2, 4, [1, 2, 3]), {}, 3.14, {}, TypeError),
+            ('_lambda_func_2', (2, 'a', [1, 2, 3]), {}, None, {}, TypeError),
+            ('_lambda_func_3', (2, 'a'), {}, None, {}, TypeError),
         ],
     )
     def test_strict(
@@ -30,9 +39,11 @@ class TestDecorator:
         args: Any,
         kwargs: Any,
         expected_ret: Any,
+        dkwargs: Any,
         throwable: TypeError | None,
     ) -> None:
-        decorator: Callable[[Any], Any] = strict(getattr(self, func_name))
+        envelop: Callable[[Any], Any] = strict(**dkwargs)
+        decorator: Callable[[Any], Any] = envelop(getattr(self, func_name))
 
         if throwable:
             with pytest.raises(throwable):
