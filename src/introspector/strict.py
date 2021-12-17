@@ -119,8 +119,8 @@ class Strict:
                     if type_ is inspect._empty:
                         raise TypeError('Missing typing.')
 
-                    inspector: Introspector = Introspector(type_)
-                    inspector.inspect(type_, value)
+                    inspector: Introspector = Introspector(type_, value)
+                    inspector.inspect()
                 except TypeError as e:
                     raise TypeError(
                         f'[{self._fx.__name__}] Arg '
@@ -140,9 +140,10 @@ class Strict:
 
         try:
             inspector: Introspector = Introspector(
-                self._fx_sign.return_annotation
+                self._fx_sign.return_annotation,
+                retval,
             )
-            inspector.inspect(self._fx_sign.return_annotation, retval)
+            inspector.inspect()
         except TypeError as e:
             raise TypeError(f'[{self._fx.__name__}] Return value error. {e}')
 

@@ -1,28 +1,51 @@
 from types import UnionType
 from typing import Any, TypeVar, Union
 from collections import abc
+import inspect
 
 
 class Introspector:
     '''The inspector class implementation.
     Offer tool to compare a typing to a value.
+
+    Attributes:
+        _type (TypeVar): The type tree.
+        _value (Any): The data structure root value.
     '''
 
-    def __init__(self, type_tree: TypeVar) -> None:
-        self._type_tree: TypeVar = type_tree
+    def __init__(self, type_: TypeVar, value: Any) -> None:
+        '''The constructor.
 
-    def inspect(self, type_: TypeVar, value: Any) -> None:
+        Args:
+            type_ (TypeVar): The type tree.
+            _value (Any): The data structure root value.
+        '''
+
+        self._type: TypeVar = type_
+        self._value: Any = value
+
+    def inspect(
+        self,
+        type_: TypeVar | inspect._empty = inspect._empty,
+        value: Any | inspect._empty = inspect._empty,
+    ) -> None:
         '''Analyze the typing tree and compare each typing node
         with the given value.
 
         Args:
-            type_ (TypeVar): The typing tree.
-            value (Any): The value to analyze.
+            type_ (Optional, TypeVar): The typing tree.
+                Default to inspect._empty.
+            value (Optional, Any): The value to analyze.
+                Default to inspect._empty.
 
         Raises:
             TypeError: If the value data structure does not match
                 with the given typing.
         '''
+
+        if type_ is inspect._empty or value is inspect._empty:
+            type_ = self._type
+            value = self._value
 
         origin: TypeVar = self._get_origin(type_)
 
@@ -82,7 +105,7 @@ class Introspector:
 
             if not match:
                 raise TypeError(
-                    f'Expected {self._type_tree}. Mismatch on {type(value)}'
+                    f'Expected {self._type}. Mismatch on {type(value)}'
                 )
         elif (
             origin is not abc.Callable
@@ -91,7 +114,7 @@ class Introspector:
             and not isinstance(value, abc.Callable)
         ):
             raise TypeError(
-                f'Expected {self._type_tree}. Mismatch on {type(value)}'
+                f'Expected {self._type}. Mismatch on {type(value)}'
             )
 
     def _inspect_subtypes(self, type_: TypeVar, value: Any) -> None:
