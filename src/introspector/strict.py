@@ -12,17 +12,17 @@ class Strict:
         def foo(a: int, b: list[str]) -> None:
             ...
 
-        @Strict(exclude=['b'])
+        @Strict(ignore=['b'])
         def bar(a: int, b: list[str]) -> None:
             ...
 
     Attributes:
         _fx (Callable[[Any], Any]): The function reference.
         _fx_sign (inspect.Signature): The function signature.
-        _exclude (set[str]) = The list of arguments that will not
+        _ignore (set[str]) = The list of arguments that will not
             inspected. Default to _DEFAULT_EXCLUSIONS.
         _DEFAULT_EXCLUSIONS (ClassVar[list[str]]) The default list of
-            excluded function arguments.
+            ignored function arguments.
     '''
 
     _DEFAULT_EXCLUSIONS: ClassVar[list[str]] = ['self', 'cls']
@@ -41,8 +41,8 @@ class Strict:
 
         self._fx: Callable[[Any], Any] = None
         self._fx_sign: inspect.Signature = None
-        self._exclude: set[str] = set(kwargs.get('exclude', []))
-        self._exclude.update(self._DEFAULT_EXCLUSIONS)
+        self._ignore: set[str] = set(kwargs.get('ignore', []))
+        self._ignore.update(self._DEFAULT_EXCLUSIONS)
 
     def _map_params(
         self,
@@ -112,7 +112,7 @@ class Strict:
         )
 
         for arg_name, pair in params_mapping.items():
-            if arg_name not in self._exclude:
+            if arg_name not in self._ignore:
                 try:
                     type_, value = pair
 

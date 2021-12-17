@@ -87,7 +87,7 @@ class TestStrictClassDecorator:
     ) -> float:
         return 3.14
 
-    @Strict(exclude=['b'])
+    @Strict(ignore=['b'])
     def _lambda_func_6(
         self,
         a: int,
@@ -181,7 +181,7 @@ class TestStrictFunctionDecorator:
     ) -> float:
         return 3.14
 
-    @strict(exclude=['b'])
+    @strict(ignore=['b'])
     def _lambda_func_6(
         self,
         a: int,
