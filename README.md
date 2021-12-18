@@ -7,6 +7,9 @@
   - [Table of contents](#table-of-contents)
   - [Introduction](#introduction)
   - [Requirements](#requirements)
+  - [Installation](#installation)
+    - [From Pypi](#from-pypi)
+    - [From releases](#from-releases)
   - [Basic usage](#basic-usage)
   - [Python 3.10 supported typing syntax](#python-310-supported-typing-syntax)
   - [Instrospector.strict available options](#instrospectorstrict-available-options)
@@ -20,6 +23,23 @@ This project is under development.
 ## Requirements
 
 - Python >= 3.10
+
+## Installation
+
+### From Pypi
+
+```sh
+pip install introspector
+```
+
+### From releases
+
+Go to the [releases](https://github.com/Arthuchaut/introspector/releases) page and download the `wheel` of the latest version.  
+Then, add the whell file in your project folder and install it via pip.
+
+```sh
+pip install <path/to/introspector-*.whl>
+```
 
 ## Basic usage
 
